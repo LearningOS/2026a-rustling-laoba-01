@@ -2,7 +2,6 @@
 	queue
 	This question requires you to use queues to implement the functionality of the stac
 */
-// I AM NOT DONE
 
 #[derive(Debug)]
 pub struct Queue<T> {
@@ -67,15 +66,29 @@ impl<T> myStack<T> {
         }
     }
     pub fn push(&mut self, elem: T) {
-        //TODO
+        // Always push onto q1; q2 is only scratch space for `pop`.
+        self.q1.enqueue(elem);
     }
+
+    /// Move everything but the last element from q1 into q2, hand back that
+    /// last element, then swap the roles of the two queues.
     pub fn pop(&mut self) -> Result<T, &str> {
-        //TODO
-		Err("Stack is empty")
+        if self.q1.is_empty() {
+            return Err("Stack is empty");
+        }
+        while self.q1.size() > 1 {
+            let value = self.q1.dequeue().unwrap();
+            self.q2.enqueue(value);
+        }
+        // q1 now holds only the top element. Swap first, so that we never
+        // hold a borrow of q1 across the swap (dequeue's `&str` error borrows
+        // `self` for as long as the result lives).
+        std::mem::swap(&mut self.q1, &mut self.q2);
+        self.q2.dequeue()
     }
+
     pub fn is_empty(&self) -> bool {
-		//TODO
-        true
+        self.q1.is_empty()
     }
 }
 

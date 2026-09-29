@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -69,15 +68,41 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+    pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self
+    where
+        T: Ord,
+    {
+        let mut a = Self::into_vec(list_a).into_iter().peekable();
+        let mut b = Self::into_vec(list_b).into_iter().peekable();
+        let mut result = Self::new();
+
+        loop {
+            let take_from_a = match (a.peek(), b.peek()) {
+                (Some(x), Some(y)) => x <= y,
+                (Some(_), None) => true,
+                (None, Some(_)) => false,
+                (None, None) => break,
+            };
+            let value = if take_from_a { a.next() } else { b.next() }.unwrap();
+            result.add(value);
         }
-	}
+
+        result
+    }
+
+    /// Consumes the list and returns its values in order.
+    fn into_vec(list: LinkedList<T>) -> Vec<T> {
+        let mut values = Vec::new();
+        let mut current = list.start;
+        while let Some(ptr) = current {
+            // SAFETY: `ptr` was produced by `Box::into_raw` in `add`, so it
+            // still points at a live, uniquely owned node of `list`.
+            let Node { val, next } = *unsafe { Box::from_raw(ptr.as_ptr()) };
+            values.push(val);
+            current = next;
+        }
+        values
+    }
 }
 
 impl<T> Display for LinkedList<T>
